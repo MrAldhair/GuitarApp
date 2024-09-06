@@ -27,33 +27,26 @@ function App() {
   const MAX_ITEMS = 5;
   const MIN_ITEMS = 1;
 
-  //console.log(auth)
   /**
    * Se ejecuta automaticamente cuando el componente esta lista, es un buen lugar para colocar codigo
    * para consultar una API o LocalStorage
    */
   useEffect(() => {
-    console.log("El componente esta listo");
     localStorage.setItem('cart', JSON.stringify(cart));
-    //console.log("Componente listo, pasando por Auth")
   }, [cart]); // si se deja vacio el arreglo solo se ejecuta una sola vez
 
-  //console.log(data);
 
   function addToCart(item) {
 
     const itemExist = cart.findIndex(guitar => guitar.id === item.id);
-    console.log(itemExist)
 
     if (itemExist >= 0) { // existe en el carrito
       if(cart[itemExist].quantity >= MAX_ITEMS) return;
-      console.log('Item ya existe en el carrito')
       const updateCart = [...cart]; // copia del state
       updateCart[itemExist].quantity++;
       setCart(updateCart);
     } else {
 
-      console.log('Ne existe item, agregando al carrito')
       item.quantity = 1;
       setCart([...cart, item]);
       //setCart( prevCart => [...prevCart, item] );
@@ -63,7 +56,6 @@ function App() {
   }
 
   function removeFromCart(id) {
-    console.log('Eliminando item ', id)
     setCart(prevCart => prevCart.filter(guitar => guitar.id !== id))
   }
 
@@ -107,10 +99,6 @@ function App() {
   return (
     // Aqui se pueden agregar Expressions (es algo que produce un valor: ternarios, Array Method que genere un nuevo metodo)
     <>
-      {
-        // ejemplo de expression
-        auth === true ? console.log('verdadero') : console.log('mentira')
-      }
       <Header
         cart = { cart }
         removeToCart = { removeFromCart }
