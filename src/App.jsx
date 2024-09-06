@@ -7,15 +7,25 @@ import { useEffect } from "react";
 function App() {
 
   // todo despues de aqui y antes de return se le conoce como Statements (sentencias, instrucciones, pasos, etc)
-
   // Reglas de los Hooks
   // se recomienda colocar en esta parte superior para tener un orden, ya que se puede dispara el numero de Hooks creados.
   // No se deben colocar dentro de condicionales, tampoco despues de un return
-  const [ auth, setAuth ] = useState(false);
 
-  const [ data, setData ] = useState(db);
 
-  const [cart, setCart] =  useState([]);
+  // El state de un componente es asincrono
+
+  const [auth, setAuth] = useState(false);
+
+  const [data, setData] = useState(db);
+
+  const initialCart = () => {
+    const localStorageCart = localStorage.getItem('cart');
+    return localStorageCart ? JSON.parse(localStorageCart) : [];
+  };
+  const [cart, setCart] = useState(initialCart);
+
+  const MAX_ITEMS = 5;
+  const MIN_ITEMS = 1;
 
   //console.log(auth)
   /**
@@ -23,27 +33,91 @@ function App() {
    * para consultar una API o LocalStorage
    */
   useEffect(() => {
-    //console.log("El componente esta listo")
+    console.log("El componente esta listo");
+    localStorage.setItem('cart', JSON.stringify(cart));
     //console.log("Componente listo, pasando por Auth")
-  }, [auth]); // si se deja vacio el arreglo solo se ejecuta una sola vez
+  }, [cart]); // si se deja vacio el arreglo solo se ejecuta una sola vez
 
   //console.log(data);
 
-  function addToCart (item) {
-    
-    setCart([...cart, item])
-    console.log(cart)
+  function addToCart(item) {
+
+    const itemExist = cart.findIndex(guitar => guitar.id === item.id);
+    console.log(itemExist)
+
+    if (itemExist >= 0) { // existe en el carrito
+      if(cart[itemExist].quantity >= MAX_ITEMS) return;
+      console.log('Item ya existe en el carrito')
+      const updateCart = [...cart]; // copia del state
+      updateCart[itemExist].quantity++;
+      setCart(updateCart);
+    } else {
+
+      console.log('Ne existe item, agregando al carrito')
+      item.quantity = 1;
+      setCart([...cart, item]);
+      //setCart( prevCart => [...prevCart, item] );
+
+    }
 
   }
 
+  function removeFromCart(id) {
+    console.log('Eliminando item ', id)
+    setCart(prevCart => prevCart.filter(guitar => guitar.id !== id))
+  }
+
+  function increaseQuantity(id) {
+    const updatedCart = cart.map( item => {
+      if (item.id === id && item.quantity < MAX_ITEMS) {
+        return {
+          ...item,
+          quantity: item.quantity + 1
+        }
+      }
+
+      return item;
+    });
+
+    setCart(updatedCart);
+
+  }
+
+  function decreaseQuantity(id) {
+    const updatedCart = cart.map( item => {
+      if (item.id === id && item.quantity > MIN_ITEMS) {
+        return {
+          ...item,
+          quantity: item.quantity - 1
+        }
+      }
+
+      return item;
+    });
+
+    setCart(updatedCart);
+
+  }
+
+  function clearCart() {
+    setCart([]);
+  }
+
+
   return (
-  // Aqui se pueden agregar Expressions (es algo que produce un valor: ternarios, Array Method que genere un nuevo metodo)
+    // Aqui se pueden agregar Expressions (es algo que produce un valor: ternarios, Array Method que genere un nuevo metodo)
     <>
-       {
+      {
         // ejemplo de expression
         auth === true ? console.log('verdadero') : console.log('mentira')
-       }   
-      <Header />
+      }
+      <Header
+        cart = { cart }
+        removeToCart = { removeFromCart }
+        increaseQuantity = { increaseQuantity }
+        decreaseQuantity = { decreaseQuantity }
+        clearCart = { clearCart } 
+      />
       <main className="container-xl mt-5">
         <h2 className="text-center">Nuestra Colección</h2>
 
@@ -54,19 +128,19 @@ function App() {
               // tiene que estar el return para que se muestre en la UI
               return (
                 <Guitar
-                  key = { guitar.id }
-                  guitar = { guitar }
-                  addToCart = { addToCart }
+                  key={guitar.id}
+                  guitar={guitar}
+                  addToCart={addToCart}
                 />
               )
             })
           }
-          
+
         </div>
 
       </main>
 
-      
+
 
       <footer className="bg-dark mt-5 py-5">
         <div className="container-xl">
